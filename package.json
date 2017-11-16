@@ -1,0 +1,33 @@
+{
+  "name": "react-project-0",
+  "version": "1.0.0",
+  "description": "Learning exercise",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Delvach/react-project-0.git"
+  },
+  "keywords": [
+    "react"
+  ],
+  "author": "delvach",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Delvach/react-project-0/issues"
+  },
+  "homepage": "https://github.com/Delvach/react-project-0#readme",
+  "devDependencies": {
+    "react": "^16.1.1",
+    "react-dom": "^16.1.1",
+    "react-scripts": "^1.0.17"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
