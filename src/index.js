@@ -1,5 +1,272 @@
+// Main resources
 import React from 'react';
 import ReactDOM from 'react-dom';
+
+// Material UI
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import AppBar from 'material-ui/AppBar';
+import {Tabs, Tab} from 'material-ui/Tabs';
+import SwipeableViews from 'react-swipeable-views'; // From https://github.com/oliviertassinari/react-swipeable-views
+import Toggle from 'material-ui/Toggle';
+
+import {
+  Table,
+  TableBody,
+  TableHeader,
+  TableHeaderColumn,
+  TableRow,
+  TableRowColumn,
+} from 'material-ui/Table';
+
+import FontIcon from 'material-ui/FontIcon';
+
+
+// React flexbox grid for layout; similar functionality will be in the next full release of React
+import { Grid, Row, Col } from 'react-flexbox-grid';
+
+
+
+// Custom styles
+import './index.css';
+
+const iconStyles = {
+  marginRight: 24,
+};
+
+const tabStyles = {
+  headline: {
+    fontSize: 24,
+    paddingTop: 16,
+    marginBottom: 12,
+    fontWeight: 400,
+  },
+  slide: {
+    padding: 10,
+  },
+};
+
+/*
+ *  Filter view component
+ */
+class MainFilterComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleDeptFilterChange = this.handleDeptFilterChange.bind(this);
+        this.handleRoleFilterChange = this.handleRoleFilterChange.bind(this);
+        this.state = {
+            deptFilter: props.departments[0].id,
+            roleFilter: props.roles[0].id,
+        };
+    }
+
+    handleDeptFilterChange = (e, index, value) => {
+        console.info(e);
+        this.setState({
+            deptFilter: e.target.value
+        }, () => { console.info(this.state); });
+    }
+
+    handleRoleFilterChange = (e, index, value) => {
+        console.info(e);
+        this.setState({
+            roleFilter: e.target.value
+        }, () => { console.info(this.state); });
+    }
+    
+    render() {
+        const data = {
+            depts: this.props.departments.slice(),
+            roles: this.props.roles.slice()
+        };
+
+        const filters = [
+            {id:'dept', title:'Department'},
+            {id:'role', title:'Role'}
+        ].map((metric, idx) => {
+            const selOptions= data[(metric.id === 'dept') ? 'depts' : 'roles'].map((item, idx) => {
+                return (
+                    <FilterOption 
+                        key={item.id} 
+                        id={item.id} 
+                        title={item.title}
+                        active={this.props.isToggleActive(metric.id, item.id)}
+                        handleChange={this.props.handleFilterChange}
+                    />
+                );
+            });
+            return (
+                <Filter
+                    optionValues={selOptions} 
+                    key={metric.id} 
+                    id={metric.id} 
+                    title={metric.title} 
+                />
+            );
+        });
+
+        return (
+            <div className="filter">
+            {filters}
+            </div>
+        );
+    }
+}
+
+class Filter extends React.Component {
+    render() {
+        const iconName = this.props.id === 'dept' ? 'account_balance' : 'account_circle';
+        const textLabel = 'View ' + (this.props.id === 'dept' ? 'Departments' : 'Roles');
+        return (
+            <div>
+                <div className="icon-text">
+                    <FontIcon className="material-icons" style={iconStyles}>{iconName}</FontIcon>
+                    <span className="text">{textLabel}</span>
+                </div>
+                <div>
+                    {this.props.optionValues}
+                </div>
+            </div>
+        );
+    }
+}
+
+class FilterOption extends React.Component {
+    render() {
+        return (
+            <div>
+                <Toggle
+                    onToggle={this.props.handleChange}
+                    label={this.props.title}
+                    labelPosition="right"
+                    toggled={this.props.active}
+                />
+            </div>
+        )
+    }
+}
+
+
+/*
+ *  Main list view
+ */
+class MainViewComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            tabSlideIndex: 0
+        };
+    }
+
+    handleTabChange = (tabValue) => {
+        this.setState({
+            tabSlideIndex: tabValue
+        });
+    }
+
+    render() {
+        const members = this.props.members;
+        members.sort();
+        const memberRows = members.map((member => {
+            return (
+                <MemberRow key={member.id} details={member} />
+            );
+        }));
+
+        return (
+            <div>
+                <div>
+                    <Tabs
+                        onChange={this.handleTabChange}
+                        value={this.state.tabSlideIndex}
+                    >
+                        <Tab label="Unformatted data" value={0} />
+                        <Tab label="Table data" value={1} />
+                        <Tab label="Visualization (pending)" value={2} />
+                    </Tabs>
+                    <SwipeableViews
+                        index={this.state.tabSlideIndex}
+                        onChangeIndex={this.handleTabChange}
+                    >
+                        <div>
+                            {memberRows}
+                        </div>
+                        <div style={tabStyles.slide}>
+                            <MemberTable
+                                data={members}
+                            />
+                        </div>
+                        <div style={tabStyles.slide}>
+                            Integrate d3 visual here
+                        </div>
+                    </SwipeableViews>
+                </div>
+                
+            </div>
+        );
+    }
+
+}
+
+class MemberTable extends React.Component {
+    render() {
+        var oneDay = 24*60*60*1000;
+        const memberTableRows = this.props.data.map((member => {
+            return (
+                <TableRow key={member.id}>
+                    <TableRowColumn>{member.username}</TableRowColumn>
+                    <TableRowColumn>{member.nameFull}</TableRowColumn>
+                    <TableRowColumn>{member.email}</TableRowColumn>
+                    <TableRowColumn>{member.nickname}</TableRowColumn>
+                    <TableRowColumn>{Math.round(Math.abs( (new Date().getTime() - member.startDate.getTime())/ oneDay))}</TableRowColumn>
+                </TableRow>
+            );
+        }));
+        return (
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHeaderColumn>Username</TableHeaderColumn>
+                        <TableHeaderColumn>Full Name</TableHeaderColumn>
+                        <TableHeaderColumn>Email</TableHeaderColumn>
+                        <TableHeaderColumn>Nickname</TableHeaderColumn>
+                        <TableHeaderColumn># Days Member</TableHeaderColumn>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {memberTableRows}
+                </TableBody>
+            </Table>
+        );
+    }
+}
+
+// Individual row of member data
+class MemberRow extends React.Component {
+
+    render() {
+        var oneDay = 24*60*60*1000;
+        return (
+            <div className="memberItem">
+                {this.props.details.id},
+                {this.props.details.nameFull},
+                {this.props.details.username},
+                {this.props.details.email},
+                {this.props.details.gender === 'm' ? 'Male' : 'Female'},
+                {this.props.details.nickname},
+                {Math.round(Math.abs( (new Date().getTime() - this.props.details.startDate.getTime())/ oneDay))}
+            </div>
+        );
+    }
+}
+
+
+
+
+
+
+/*
+ *  Data class definitions
+ */
 
 // Define org department class
 class Department {
@@ -24,11 +291,9 @@ class Member {
     constructor(id, username, nameFirst, nameLast, gender, email, nickname, roleId, deptId, startDate) {
         this.id     = id;
         this.username = username;
-        this.name = {
-            first: nameFirst,
-            last: nameLast,
-            full: [nameFirst, nameLast].join(' ')
-        };
+        this.nameFirst = nameFirst;
+        this.nameLast = nameLast;
+        this.nameFull = [nameFirst, nameLast].join(' ');
         this.gender = gender.toLowerCase();
         this.email = email;
         this.nickname = nickname;
@@ -38,8 +303,14 @@ class Member {
     }
 }
 
+/*
+ *  Begin demo data definitions
+ *  TODO: Integrate as data service
+ */
+
 // Define departments
-var orgDepartments = [
+const orgDepartments = [
+    new Department('all','All'),
     new Department('cre','Creative'),
     new Department('engb', 'Back End Infrastructure'),
     new Department('fin', 'Finance'),
@@ -51,7 +322,8 @@ var orgDepartments = [
 
 
 // Define roles
-var orgRoles = [
+const orgRoles = [
+    new Role('all', 'All'),
     new Role('dsgn', 'Designer'),
     new Role('eng', 'Engineer'),
     new Role('man', 'Manager'),
@@ -62,7 +334,7 @@ var orgRoles = [
 
 
 // Define members, using faux data from https://www.mockaroo.com
-var orgMembers = [];
+const orgMembers = [];
 
 [{"id":1,"username":"vbrettoner0","nameFirst":"Von","nameLast":"Brettoner","gender":"M","email":"vbrettoner0@amazon.com","nickname":"Black-crowned night heron","startDate":"5/5/2013","role":"eng","dept":"engb"},
 {"id":2,"username":"wdegenhardt1","nameFirst":"Web","nameLast":"Degenhardt","gender":"M","email":"wdegenhardt1@4shared.com","nickname":"Lesser masked weaver","startDate":"12/19/2015","role":"eng","dept":"engf"},
@@ -130,9 +402,84 @@ var orgMembers = [];
 });
 
 
-console.log(orgMembers);
+// Begin building react app
 
+// Main application inserted into DOM
+class MainApp extends React.Component {
+    constructor(props) {
+        super(props);
+        
+        this.handleFilterChange = this.handleFilterChange.bind(this);
+
+        this.state = {
+            filters: {
+                depts: {
+                    showAll: true,
+                    active: orgDepartments.slice()
+                },
+                roles: {
+                    showAll: true,
+                    active: orgRoles.slice()
+                },
+            }
+        };
+    }
+
+
+    // componentDidMount() { }
+
+    // componentWillUnmount() {}
+
+    // Handle select box change events
+    handleFilterChange = (e, v) => {
+        console.info(e.target, v);
+    }
+
+    isToggleActive = (metricId, filterId) => {
+        // this.state.filters[metricId]
+        return filterId === 'all';
+    }
+
+
+    render() {
+
+        return (
+            <MuiThemeProvider>
+                <div className="main">
+                    <Grid fluid>
+                        <Row>
+                            <Col xs={12} sm={12} md={12} lg={12} >
+                                <AppBar
+                                    title="delvach learning app 0"
+                                    showMenuIconButton={false}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col xs={12} sm={3} md={3} lg={3} >
+                                <MainFilterComponent 
+                                    handleFilterChange={this.handleFilterChange} 
+                                    departments={orgDepartments}
+                                    roles={orgRoles}
+                                    isToggleActive={this.isToggleActive}
+                                />
+                            </Col>
+                            <Col xs={12} sm={9} md={9} lg={9} >
+                                <MainViewComponent members={orgMembers}  />
+                            </Col>
+                        </Row>
+                    </Grid>
+                </div>
+            </MuiThemeProvider>
+        );
+    }
+}
+
+
+
+
+// Render application
 ReactDOM.render(
-  <div>Hello!</div>,
+  <MainApp />,
   document.getElementById('root')
 );
