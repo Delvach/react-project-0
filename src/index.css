@@ -1,0 +1,19 @@
+body {
+    margin: 0;
+    font-family: 'Roboto';
+}
+
+.icon-text {
+    position: relative;
+}
+
+.icon-text span.material-icons {
+    margin-top: 6px;
+}
+
+.icon-text span.text {
+    display: block;
+    position: absolute;
+    top: 9px;
+    left: 32px;
+}
