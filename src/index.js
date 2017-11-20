@@ -45,6 +45,79 @@ const tabStyles = {
   },
 };
 
+
+
+/*
+ * Begin building react app
+ */
+
+// Main application inserted into DOM
+class MainApp extends React.Component {
+    constructor(props) {
+        super(props);
+        
+        this.handleFilterChange = this.handleFilterChange.bind(this);
+
+        this.state = {
+            filters: {
+                depts: {
+                    showAll: true,
+                    active: orgDepartments.slice()
+                },
+                roles: {
+                    showAll: true,
+                    active: orgRoles.slice()
+                },
+            }
+        };
+    }
+
+    // Handle select box change events
+    handleFilterChange = (e, v) => {
+        console.info(e.target, v);
+    }
+
+    isToggleActive = (metricId, filterId) => {
+        return filterId === 'all';
+    }
+
+
+    render() {
+
+        return (
+            <MuiThemeProvider>
+                <div className="main">
+                    <Grid fluid>
+                        <Row>
+                            <Col xs={12} sm={12} md={12} lg={12} >
+                                <AppBar
+                                    title="delvach learning app 0"
+                                    showMenuIconButton={false}
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col xs={12} sm={3} md={3} lg={3} >
+                                <MainFilterComponent 
+                                    handleFilterChange={this.handleFilterChange} 
+                                    departments={orgDepartments}
+                                    roles={orgRoles}
+                                    isToggleActive={this.isToggleActive}
+                                />
+                            </Col>
+                            <Col xs={12} sm={9} md={9} lg={9} >
+                                <MainViewComponent members={orgMembers}  />
+                            </Col>
+                        </Row>
+                    </Grid>
+                </div>
+            </MuiThemeProvider>
+        );
+    }
+}
+
+
+
 /*
  *  Filter view component
  */
@@ -146,6 +219,30 @@ class FilterOption extends React.Component {
 }
 
 
+// Return methods for sorting members' data
+const getMemberSortingFunc = (sortMethod) => {
+    
+    switch(sortMethod) {
+        case 'nameLast':
+    
+            return (a, b) => {
+                    const nameA = a.nameLast.toUpperCase();
+                    const nameB = b.nameLast.toUpperCase();
+
+                    if(nameA < nameB) {
+                        return -1;
+                    }
+                    if(nameA > nameB) {
+                        return 1;
+                    }
+                    return 0;
+                }
+            // no break; needed here since function returns; React throws unreachable code warning if it exists
+        default:
+            break;
+    }
+}
+
 /*
  *  Main list view
  */
@@ -153,7 +250,8 @@ class MainViewComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tabSlideIndex: 0
+            sortMethod: 'nameLast',
+            tabSlideIndex: 1
         };
     }
 
@@ -164,8 +262,8 @@ class MainViewComponent extends React.Component {
     }
 
     render() {
-        const members = this.props.members;
-        members.sort();
+        const members = this.props.members.sort(getMemberSortingFunc(this.state.sortMethod));
+        console.info(members);
         const memberRows = members.map((member => {
             return (
                 <MemberRow key={member.id} details={member} />
@@ -210,13 +308,31 @@ class MainViewComponent extends React.Component {
 class MemberTable extends React.Component {
     render() {
         var oneDay = 24*60*60*1000;
+        const departments = orgDepartments.slice();
+        const roles = orgRoles.slice();
+
+        const getDepartmentName = (deptId) => {
+            const output = departments.find((dept) => {
+                return dept.id === deptId;
+            });
+            return (typeof output === 'undefined') ? '' : output.title;
+        }
+
+        const getRoleName = (roleId) => {
+            const output = roles.find((role) => {
+                return role.id === roleId;
+            });
+            return (typeof output === 'undefined') ? '' : output.title;
+        }
+
         const memberTableRows = this.props.data.map((member => {
             return (
                 <TableRow key={member.id}>
                     <TableRowColumn>{member.username}</TableRowColumn>
                     <TableRowColumn>{member.nameFull}</TableRowColumn>
+                    <TableRowColumn>{getRoleName(member.roleId)}</TableRowColumn>
                     <TableRowColumn>{member.email}</TableRowColumn>
-                    <TableRowColumn>{member.nickname}</TableRowColumn>
+                    <TableRowColumn>{getDepartmentName(member.deptId)}</TableRowColumn>
                     <TableRowColumn>{Math.round(Math.abs( (new Date().getTime() - member.startDate.getTime())/ oneDay))}</TableRowColumn>
                 </TableRow>
             );
@@ -227,8 +343,9 @@ class MemberTable extends React.Component {
                     <TableRow>
                         <TableHeaderColumn>Username</TableHeaderColumn>
                         <TableHeaderColumn>Full Name</TableHeaderColumn>
+                        <TableHeaderColumn>Job Title</TableHeaderColumn>
                         <TableHeaderColumn>Email</TableHeaderColumn>
-                        <TableHeaderColumn>Nickname</TableHeaderColumn>
+                        <TableHeaderColumn>Department</TableHeaderColumn>
                         <TableHeaderColumn># Days Member</TableHeaderColumn>
                     </TableRow>
                 </TableHeader>
@@ -400,80 +517,6 @@ const orgMembers = [];
         entry.startDate
     ));
 });
-
-
-// Begin building react app
-
-// Main application inserted into DOM
-class MainApp extends React.Component {
-    constructor(props) {
-        super(props);
-        
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-
-        this.state = {
-            filters: {
-                depts: {
-                    showAll: true,
-                    active: orgDepartments.slice()
-                },
-                roles: {
-                    showAll: true,
-                    active: orgRoles.slice()
-                },
-            }
-        };
-    }
-
-
-    // componentDidMount() { }
-
-    // componentWillUnmount() {}
-
-    // Handle select box change events
-    handleFilterChange = (e, v) => {
-        console.info(e.target, v);
-    }
-
-    isToggleActive = (metricId, filterId) => {
-        // this.state.filters[metricId]
-        return filterId === 'all';
-    }
-
-
-    render() {
-
-        return (
-            <MuiThemeProvider>
-                <div className="main">
-                    <Grid fluid>
-                        <Row>
-                            <Col xs={12} sm={12} md={12} lg={12} >
-                                <AppBar
-                                    title="delvach learning app 0"
-                                    showMenuIconButton={false}
-                                />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col xs={12} sm={3} md={3} lg={3} >
-                                <MainFilterComponent 
-                                    handleFilterChange={this.handleFilterChange} 
-                                    departments={orgDepartments}
-                                    roles={orgRoles}
-                                    isToggleActive={this.isToggleActive}
-                                />
-                            </Col>
-                            <Col xs={12} sm={9} md={9} lg={9} >
-                                <MainViewComponent members={orgMembers}  />
-                            </Col>
-                        </Row>
-                    </Grid>
-                </div>
-            </MuiThemeProvider>
-        );
-    }
-}
 
 
 
