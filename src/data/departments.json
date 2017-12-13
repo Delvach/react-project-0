@@ -1,0 +1,34 @@
+[
+    {
+        "id": "all",
+        "title": "All"
+    },
+    {
+        "id": "cre",
+        "title": "Creative"
+    },
+    {
+        "id": "engb",
+        "title": "Back End Infrastructure"
+    },
+    {
+        "id": "fin",
+        "title": "Finance"
+    },
+    {
+        "id": "engf",
+        "title": "Front End Development"
+    },
+    {
+        "id": "hr",
+        "title": "Human Resources"
+    },
+    {
+        "id": "man",
+        "title": "Management"
+    },
+    {
+        "id": "sale",
+        "title": "Sales"
+    }
+]

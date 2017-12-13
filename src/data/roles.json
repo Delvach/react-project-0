@@ -1,0 +1,30 @@
+[
+    {
+        "id": "all",
+        "title": "All"
+    },
+    {
+        "id": "dsgn",
+        "title": "Designer"
+    },
+    {
+        "id": "eng",
+        "title": "Engineer"
+    },
+    {
+        "id": "fin",
+        "title": "Finance"
+    },
+    {
+        "id": "man",
+        "title": "Manager"
+    },
+    {
+        "id": "pman",
+        "title": "Project Manager"
+    },
+    {
+        "id": "sale",
+        "title": "Sales Associate"
+    }
+]
